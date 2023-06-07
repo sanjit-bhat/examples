@@ -1,7 +1,9 @@
 package main
 
-import "time"
-import "fmt"
+import (
+    "fmt"
+    "time"
+)
 
 /*
 What's running:
@@ -12,7 +14,7 @@ which itself points to an underlying array.
 changing slice and reads the values in that range.
 
 Behavior:
-- When running them simultaneouly,
+- When running them simultaneously,
 the read thread stops near the end of the array
 and makes no progress.
 
@@ -28,22 +30,24 @@ since a slice to it is still stored in the range.
 */
 
 func readSlice(s *[]int) {
+    fmt.Println("read: starting")
     c := 0
-    //fmt.Println("orig len", l)
+    fmt.Println("read: orig len", len(*s))
     for idx, a := range *s {
-        if idx % 1000000 == 0 {
-            fmt.Println("another 1M")
+        if idx % 1e6 == 0 {
+            fmt.Println("read: processed another 1M")
         }
         c += a
     }
-    fmt.Println(c)
+    fmt.Println("read: done")
 }
 
 func appendSlice(s *[]int) {
-    for i := 0; i < 100000000; i++ {
+    fmt.Println("append: starting")
+    for i := 0; i < 1e8; i++ {
         *s = append(*s, i)
     }
-    fmt.Println("done appending")
+    fmt.Println("append: done")
 }
 
 func main() {
@@ -51,8 +55,5 @@ func main() {
     s := &sl
     go appendSlice(s)
     time.Sleep(time.Second)
-    for i := 0; i < 100; i++ {
-        fmt.Println("starting", i)
-        readSlice(s)
-    }
+    readSlice(s)
 }
