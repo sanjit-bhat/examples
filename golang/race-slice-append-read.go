@@ -6,6 +6,11 @@ import (
 )
 
 /*
+Update:
+- This doesn't happen anymore once I switched from amd64 to arm64.
+Must've been running slower on my M1 and triggering
+some extra behavior.
+
 What's running:
 - Both threads have a pointer to a slice,
 which itself points to an underlying array.
@@ -32,19 +37,19 @@ since a slice to it is still stored in the range.
 func readSlice(s *[]int) {
     fmt.Println("read: starting")
     c := 0
-    fmt.Println("read: orig len", len(*s))
+    fmt.Println("read: orig len:", len(*s))
     for idx, a := range *s {
         if idx % 1e6 == 0 {
             fmt.Println("read: processed another 1M")
         }
         c += a
     }
-    fmt.Println("read: done")
+    fmt.Println("read: done:", c)
 }
 
 func appendSlice(s *[]int) {
     fmt.Println("append: starting")
-    for i := 0; i < 1e8; i++ {
+    for i := 0; i < 1e7; i++ {
         *s = append(*s, i)
     }
     fmt.Println("append: done")
