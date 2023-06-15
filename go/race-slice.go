@@ -88,16 +88,18 @@ func arrReadNoRace() {
     wg.Add(2)
     var mu sync.Mutex
     go func() {
+        // The iterations aren't necessary
+        // to trigger the data race without locks.
+        // However, I wanted as many reads as possible
+        // so that if a race existed with reading,
+        // the race detector would find it.
         for iter := 0; iter < 1000; iter++ {
+            // Removing these locks creates a data race.
             mu.Lock()
             slCopy := sl
             mu.Unlock()
-            bound := len(slCopy)
-            if 1e6 < len(slCopy) {
-                bound = 1e6
-            }
             c := 0
-            for i := 0; i < bound; i++ {
+            for i := 0; i < len(slCopy); i++ {
                 c += slCopy[i]
             }
         }
