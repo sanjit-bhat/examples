@@ -30,3 +30,5 @@ Proof.
     iApply "Himpl".
     iAssumption.
 Qed.
+
+End proof.
