@@ -109,6 +109,7 @@ func stopLn(ln net.Listener, cancel chan notifT) {
 
 func server() {
 	ln, err := net.Listen("tcp", port)
+	defer ln.Close()
 	if err != nil {
 		log.Fatalln("server failure", err)
 	}
@@ -123,6 +124,7 @@ func server() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
+			conn.Close()
 			select {
 			case <-cancel:
 				// Break terminates innermost for, switch, or select.
@@ -134,6 +136,7 @@ func server() {
 			break
 		}
 		g.Go(func() error {
+			defer conn.Close()
 			return handleConn(conn)
 		})
 	}
