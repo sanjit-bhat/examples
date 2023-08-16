@@ -1,8 +1,8 @@
 package main
 
 import (
-    "fmt"
-    "sync"
+	"fmt"
+	"sync"
 )
 
 /*
@@ -22,7 +22,7 @@ value ("") or the written value ("hello").
 notRacey1Chan:
 For unbuffered channels,
 the receive happens before the completion of the send.
-Because it is unbuffered, the receive and send 
+Because it is unbuffered, the receive and send
 sync their starts.
 Furthermore, by program sequencing, the assignment happens
 before the send start.
@@ -47,61 +47,65 @@ There's a data race bc read and write with no happens-before.
 */
 
 var a1 string
+
 func racey1NoSync() {
 	go func() { a1 = "hello" }()
 	fmt.Println(a1)
 }
 
 var a2 string
+
 func notRacey1Chan() {
-    ch := make(chan struct{}) 
-    go func() {
-        a2 = "hello"
-        ch <- struct{}{}
-    }()
-    <-ch
-    fmt.Println(a2)
+	ch := make(chan struct{})
+	go func() {
+		a2 = "hello"
+		ch <- struct{}{}
+	}()
+	<-ch
+	fmt.Println(a2)
 }
 
 var a3 string
+
 func notRacey2Locks() {
-    var wg sync.WaitGroup 
-    var mu sync.Mutex
-    wg.Add(2)
-    go func() {
-        mu.Lock()
-        a3 = "hello"
-        mu.Unlock()
-        wg.Done()
-    }()
-    go func() {
-        mu.Lock()
-        a3 = "world"
-        mu.Unlock()
-        wg.Done()
-    }()
-    wg.Wait()
-    fmt.Println(a3)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	wg.Add(2)
+	go func() {
+		mu.Lock()
+		a3 = "hello"
+		mu.Unlock()
+		wg.Done()
+	}()
+	go func() {
+		mu.Lock()
+		a3 = "world"
+		mu.Unlock()
+		wg.Done()
+	}()
+	wg.Wait()
+	fmt.Println(a3)
 }
 
 var a4 string
+
 func racey1Chan() {
-    ch := make(chan int, 1) 
-    go func() {
-        a4 = "hello"
-        <- ch
-    }()
-    ch <- 0
-    fmt.Println(a4)
+	ch := make(chan int, 1)
+	go func() {
+		a4 = "hello"
+		<-ch
+	}()
+	ch <- 0
+	fmt.Println(a4)
 }
 
 func main() {
-    fmt.Println("racey program, either hello or empty:")
-    racey1NoSync()
-    fmt.Println("not racey program, required hello:")
-    notRacey1Chan()
-    fmt.Println("not racey program, but still non-det:")
-    notRacey2Locks()
-    fmt.Println("racey program, subtle channel:")
-    racey1Chan()
+	fmt.Println("racey program, either hello or empty:")
+	racey1NoSync()
+	fmt.Println("not racey program, required hello:")
+	notRacey1Chan()
+	fmt.Println("not racey program, but still non-det:")
+	notRacey2Locks()
+	fmt.Println("racey program, subtle channel:")
+	racey1Chan()
 }
