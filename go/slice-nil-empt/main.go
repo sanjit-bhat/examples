@@ -9,8 +9,8 @@ import (
 
 func main() {
 	sEmpt := make([]byte, 0)
-    // Another construction is:
-    // var sNil []byte
+	// Another construction is:
+	// var sNil []byte
 	sNil := []byte(nil)
 
 	shEmpt := (*reflect.SliceHeader)(unsafe.Pointer(&sEmpt))
@@ -21,14 +21,14 @@ func main() {
 	fmt.Printf("empt slice: %+v\n", shEmpt)
 	fmt.Printf("nil slice: %+v\n", shNil)
 
-    // Both allow len calls and appends.
-    fmt.Println(len(sEmpt))
-    fmt.Println(len(sNil))
-    fmt.Println(append(sEmpt, 0))
-    fmt.Println(append(sNil, 0))
+	// Both allow len calls and appends.
+	fmt.Println(len(sEmpt))
+	fmt.Println(len(sNil))
+	fmt.Println(append(sEmpt, 0))
+	fmt.Println(append(sNil, 0))
 
-    // Equality between empt slice and nil fails,
-    // whereas for nil slice, it passes.
+	// Equality between empt slice and nil fails,
+	// whereas for nil slice, it passes.
 	fmt.Println("sEmpt == nil", sEmpt == nil)
 	fmt.Println("sNil == nil", sNil == nil)
 	// bytes.Equal *passes*, as per its
