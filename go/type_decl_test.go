@@ -21,13 +21,27 @@ func (b ByteDecl) receiver() {
 type ByteAlias = []byte
 
 /*
-This would fail since ByteAlias is a literal alias for []byte.
+This fails since you can't add methods to built-in types.
 func (b ByteAlias) receiver() {
     b[0] = 4
 }
 */
 
-func TestTypeOneField(t *testing.T) {
+func fooSlByte(o []byte) {}
+
+type byteDecl byte
+
+func fooByte(o byte) {}
+
+type slIntDecl []int
+
+func fooSlInt(o []int) {}
+
+type mapDecl map[int]int
+
+func fooMap(o map[int]int) {}
+
+func TestTypeDecl(t *testing.T) {
 	var decl ByteDecl = []byte{2, 2}
 	t.Log("easily convert from original type to re-decl", decl)
 
@@ -51,14 +65,12 @@ func TestTypeOneField(t *testing.T) {
 		t.Fatal("alias should have same type as sl")
 	}
 
-	/*
-	   TODO: I think v1 should have a bigger size than b1.
-	   After all, it's a different type, and that information should
-	   take up extra space at runtime.
-	   Maybe this only shows up if we create an interface that
-	   accepts multiple structs like ByteDecl?
-	*/
-	if tDecl.Size() != tSl.Size() {
-		t.Fatal("until proved wrong, they should have the same size")
-	}
+	t.Log("for some reason, need to cast with primitive re-decl but not with slice/map re-decl")
+	fooSlByte(decl)
+	var bDecl byteDecl
+	fooByte(byte(bDecl))
+	var slIDecl slIntDecl
+	fooSlInt(slIDecl)
+	var mDecl mapDecl
+	fooMap(mDecl)
 }
