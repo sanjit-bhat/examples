@@ -15,9 +15,7 @@ type BinaryUnmarshaler interface {
 	UnmarshalBinary(b []byte) ([]byte, bool)
 }
 
-// BinaryUnmarshalerPtr is a [BinaryUnmarshaler] and also a ptr to something.
-// this allows slice decoding to allocate the underlying thing.
-type BinaryUnmarshalerPtr[T any] interface {
+type Marshal[T BinaryAppender] interface {
 	*T
 	BinaryUnmarshaler
 }
@@ -66,9 +64,9 @@ func (f *Foo) UnmarshalBinary(b []byte) (rem []byte, err bool) {
 
 // # Slice
 
-type Slice0[T BinaryAppender] []T
+type Slice[T0 BinaryAppender, T1 Marshal[T0]] []T0
 
-func (s Slice0[T]) AppendBinary(b []byte) []byte {
+func (s Slice[T0, T1]) AppendBinary(b []byte) []byte {
 	b = UInt64(len(s)).AppendBinary(b)
 	for _, x := range s {
 		b = x.AppendBinary(b)
@@ -76,20 +74,17 @@ func (s Slice0[T]) AppendBinary(b []byte) []byte {
 	return b
 }
 
-type Slice1[T0 any, T1 BinaryUnmarshalerPtr[T0]] []T1
-
-func (s *Slice1[T0, T1]) UnmarshalBinary(b []byte) (rem []byte, err bool) {
+func (s *Slice[T0, T1]) UnmarshalBinary(b []byte) (rem []byte, err bool) {
 	rem = b
 	l := new(UInt64)
 	rem, err = l.UnmarshalBinary(b)
 	if err {
 		return
 	}
-	*s = make([]T1, uint64(*l))
+	*s = make([]T0, uint64(*l))
 	for i := range *s {
-		// allocate the underlying type T0.
-		(*s)[i] = new(T0)
-		rem, err = (*s)[i].UnmarshalBinary(rem)
+		var x T1 = &(*s)[i]
+		rem, err = x.UnmarshalBinary(rem)
 		if err {
 			return
 		}
@@ -97,13 +92,13 @@ func (s *Slice1[T0, T1]) UnmarshalBinary(b []byte) (rem []byte, err bool) {
 	return
 }
 
-// # Test
+// # Tests
 
-func TestGenericSerde(t *testing.T) {
+func TestGenericSerde0(t *testing.T) {
 	f0 := Foo{X: 10}
 	f1 := Foo{X: 11}
-	b := Slice0[Foo]{f0, f1}.AppendBinary(nil)
-	d := new(Slice1[Foo, *Foo])
+	b := Slice[Foo, *Foo]{f0, f1}.AppendBinary(nil)
+	d := new(Slice[Foo, *Foo])
 	_, err := d.UnmarshalBinary(b)
 	if err {
 		t.Fatal()
