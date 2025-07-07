@@ -45,7 +45,7 @@ func ReadInt(b []byte) (data uint64, rem []byte, err bool) {
 	return
 }
 
-// # Foo
+// # Structs
 
 type Foo struct {
 	X uint64
@@ -62,7 +62,7 @@ func (f *Foo) UnmarshalBinary(b []byte) (rem []byte, err bool) {
 	return
 }
 
-// # Slice
+// # Slices
 
 type Slice[T0 BinaryAppender, T1 Marshal[T0]] []T0
 
