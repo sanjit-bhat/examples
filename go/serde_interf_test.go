@@ -12,9 +12,11 @@ type BinaryAppender interface {
 }
 
 type BinaryUnmarshaler interface {
-	UnmarshalBinary(b []byte) ([]byte, bool)
+	UnmarshalBinary(b []byte) (rem []byte, err bool)
 }
 
+// Marshal names both T and *T so that, e.g.,
+// slice unmarshal can alloc T and call unmarshal defined on *T.
 type Marshal[T BinaryAppender] interface {
 	*T
 	BinaryUnmarshaler
@@ -81,10 +83,10 @@ func (s *Slice[T0, T1]) UnmarshalBinary(b []byte) (rem []byte, err bool) {
 	if err {
 		return
 	}
-	*s = make([]T0, uint64(*l))
-	for i := range *s {
-		var x T1 = &(*s)[i]
-		rem, err = x.UnmarshalBinary(rem)
+	s0 := make([]T0, uint64(*l))
+	*s = s0
+	for i := range s0 {
+		rem, err = (T1)(&s0[i]).UnmarshalBinary(rem)
 		if err {
 			return
 		}
@@ -94,7 +96,7 @@ func (s *Slice[T0, T1]) UnmarshalBinary(b []byte) (rem []byte, err bool) {
 
 // # Tests
 
-func TestGenericSerde0(t *testing.T) {
+func TestSerdeInterf(t *testing.T) {
 	fs := []Foo{{X: 10}, {X: 11}}
 	b := Slice[Foo, *Foo](fs).AppendBinary(nil)
 	d0 := new(Slice[Foo, *Foo])
@@ -108,7 +110,7 @@ func TestGenericSerde0(t *testing.T) {
 	}
 }
 
-func TestGenericSerde1(t *testing.T) {
+func TestSerdeInterfPrim(t *testing.T) {
 	xs0 := []uint64{10, 11}
 	// can't directly convert []uint64 to []UInt64 bc diff underlying types.
 	// see https://go.dev/ref/spec#Underlying_types.
