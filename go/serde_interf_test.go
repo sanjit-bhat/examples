@@ -112,8 +112,9 @@ func TestSerdeInterf(t *testing.T) {
 
 func TestSerdeInterfPrim(t *testing.T) {
 	xs0 := []uint64{10, 11}
-	// can't directly convert []uint64 to []UInt64 bc diff underlying types.
-	// see https://go.dev/ref/spec#Underlying_types.
+	// can't directly convert []uint64 to []UInt64 bc diff [underlying types].
+	// "The underlying type of []B1, B3, and B4 is []B1."
+	// [underlying types]: https://go.dev/ref/spec#Underlying_types
 	// xs1 := []UInt64(xs)
 	xs1 := make([]UInt64, len(xs0))
 	for i, x := range xs0 {
