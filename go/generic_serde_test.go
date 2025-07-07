@@ -95,15 +95,40 @@ func (s *Slice[T0, T1]) UnmarshalBinary(b []byte) (rem []byte, err bool) {
 // # Tests
 
 func TestGenericSerde0(t *testing.T) {
-	f0 := Foo{X: 10}
-	f1 := Foo{X: 11}
-	b := Slice[Foo, *Foo]{f0, f1}.AppendBinary(nil)
-	d := new(Slice[Foo, *Foo])
-	_, err := d.UnmarshalBinary(b)
+	fs := []Foo{{X: 10}, {X: 11}}
+	b := Slice[Foo, *Foo](fs).AppendBinary(nil)
+	d0 := new(Slice[Foo, *Foo])
+	_, err := d0.UnmarshalBinary(b)
 	if err {
 		t.Fatal()
 	}
-	if len(*d) != 2 || (*d)[0].X != 10 || (*d)[1].X != 11 {
+	d1 := []Foo(*d0)
+	if len(d1) != 2 || d1[0].X != 10 || d1[1].X != 11 {
+		t.Fatal()
+	}
+}
+
+func TestGenericSerde1(t *testing.T) {
+	xs0 := []uint64{10, 11}
+	// can't directly convert []uint64 to []UInt64 bc diff underlying types.
+	// see https://go.dev/ref/spec#Underlying_types.
+	// xs1 := []UInt64(xs)
+	xs1 := make([]UInt64, len(xs0))
+	for i, x := range xs0 {
+		xs1[i] = UInt64(x)
+	}
+	b := Slice[UInt64, *UInt64](xs1).AppendBinary(nil)
+
+	d0 := new(Slice[UInt64, *UInt64])
+	_, err := d0.UnmarshalBinary(b)
+	if err {
+		t.Fatal()
+	}
+	d1 := make([]uint64, len(*d0))
+	for i, x := range *d0 {
+		d1[i] = uint64(x)
+	}
+	if len(d1) != 2 || d1[0] != 10 || d1[1] != 11 {
 		t.Fatal()
 	}
 }
