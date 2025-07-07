@@ -22,6 +22,7 @@ func TestMethodSet(t *testing.T) {
 	baz[*Bar0]()
 	// *Bar0 is fooer. but that doesn't make Bar0 fooer.
 	// baz[Bar0]()
+
 	baz[Bar1]()
 	// since Bar1 is fooer, *Bar1 is also fooer.
 	// see https://go.dev/ref/spec#Method_sets.
